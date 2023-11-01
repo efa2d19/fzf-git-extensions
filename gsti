@@ -1,0 +1,64 @@
+#!/usr/bin/env zsh
+
+type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
+type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
+
+local fzf_git_status_colorized=$(cat <<'EOF'
+{
+  line = $0;
+  first_char = substr(line, 1, 1);
+  color = (first_char == " " || first_char == "?") ? 31 : 32;
+  printf "\033[%sm%s\033[0m\n", color, $2;
+}
+EOF
+)
+
+local preview=$(cat <<'EOF'
+file=$(echo {} | awk '{ print $NF }');
+diff_output=$(git diff $file) || true;
+staged_output=$(git diff --staged $file) || true;
+
+if [[ -n "$diff_output" ]]; then
+  echo "$diff_output";
+elif [[ -n "$staged_output" ]]; then
+  echo "$staged_output";
+else
+  git diff --no-index /dev/null $file;
+fi | delta \
+  --file-style=omit \
+  --hunk-header-style=omit \
+  --width=$(( $(tput cols) / 10 * 7 ))
+EOF
+)
+
+local lock_file='/tmp/gsti_lock'
+local acquire_lock="until nice -n 10 mkdir $lock_file 2>/dev/null; do sleep 0.2; done"
+local release_lock="rmdir $lock_file 2>/dev/null"
+
+function teardown() {
+	rmdir "$lock_file" 2>/dev/null
+	rm -f '.git/index.lock' 2>/dev/null
+}
+
+trap 'teardown' EXIT
+
+local reload_command="reload(${acquire_lock} && { git status -u --porcelain | awk '$fzf_git_status_colorized' || true } && ${release_lock})"
+local execute_silent='execute-silent'
+local execute='execute'
+
+local bind_add="${execute_silent}(${acquire_lock} && { git add {} || true } && ${release_lock})+${reload_command}"
+local bind_patch="${execute}(${acquire_lock} && { git add --patch {} 2>/dev/null || true } && ${release_lock})+${reload_command}"
+local bind_restore="${execute_silent}(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
+local bind_delete="${execute_silent}(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
+local bind_intent="${execute_silent}(${acquire_lock} && { git add -N {} || true } && ${release_lock})+${reload_command}"
+
+git status -u --porcelain | awk "$fzf_git_status_colorized" | fzf \
+  --ansi \
+  --preview "$preview" \
+  --preview-window '70%' \
+  --header '^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
+  --bind "ctrl-a:${bind_add}" \
+  --bind "ctrl-p:${bind_patch}" \
+  --bind "ctrl-r:${bind_restore}" \
+  --bind "ctrl-d:${bind_delete}" \
+  --bind "ctrl-n:${bind_intent}"

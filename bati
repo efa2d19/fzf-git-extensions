@@ -1,0 +1,19 @@
+#!/usr/bin/env zsh
+
+type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
+type 'bat' &>/dev/null || { echo 'bat is not installed' && exit 1 }
+
+local file
+
+local preview=$(cat <<'EOF'
+bat \
+  --style=numbers \
+  --color=always \
+  --line-range :100 \
+  {}
+EOF
+)
+
+fzf --preview "$preview" | read -r file
+
+[[ -z $file ]] || { bat "$file" }

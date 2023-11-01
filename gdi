@@ -1,0 +1,16 @@
+#!/usr/bin/env zsh
+
+type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
+type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
+
+local preview=$(cat <<'EOF'
+git diff {} | delta \
+  --file-style=omit \
+  --hunk-header-style=omit \
+  --width=$(( $(tput cols) / 10 * 7 ))
+EOF
+)
+
+git diff --name-only | fzf \
+  --preview-window '70%' \
+  --preview "$preview" > /dev/null
