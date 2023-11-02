@@ -6,4 +6,4 @@ local branch
 
 git branch --all | awk '{print $NF}' | fzf --preview 'git logs {}' | read -r branch
 
-[[ -z $branch ]] || { git switch "$branch" }
+[[ -z $branch ]] || { [[ $branch == origin/* || $branch == remotes/* ]] && git switch --detach "$branch" || git switch "$branch" }
