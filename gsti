@@ -52,7 +52,7 @@ local bind_restore="${execute_silent}(${acquire_lock} && { git restore --staged 
 local bind_delete="${execute_silent}(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
 local bind_intent="${execute_silent}(${acquire_lock} && { git add -N {} || true } && ${release_lock})+${reload_command}"
 
-git status -u --porcelain | awk "$fzf_git_status_colorized" | fzf \
+git status -u --short | awk "$fzf_git_status_colorized" | fzf \
   --ansi \
   --preview "$preview" \
   --preview-window '70%' \
