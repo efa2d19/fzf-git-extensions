@@ -3,11 +3,15 @@
 type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
 
 local branch
+local query=''
+
+[[ -z $@ ]] || { query="$@" }
 
 git branch --all |
 awk '{print $NF}' |
 fzf \
   --cycle \
+  --query "$query" \
   --preview 'git logs {}' |
 read -r branch
 

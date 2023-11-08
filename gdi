@@ -3,6 +3,10 @@
 type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
 type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
 
+local query=''
+
+[[ -z $@ ]] || { query="$@" }
+
 local preview=$(cat <<'EOF'
 git diff {} |
 delta \
@@ -15,5 +19,6 @@ git diff \
   --name-only |
 fzf \
   --cycle \
+  --query "$query"  \
   --preview-window '70%' \
   --preview "$preview" > /dev/null

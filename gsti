@@ -3,6 +3,10 @@
 type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
 type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
 
+local query=''
+
+[[ -z $@ ]] || { query="$@" }
+
 local fzf_git_status_colorized=$(cat <<'EOF'
 {
   line = $0;
@@ -58,6 +62,7 @@ awk "$fzf_git_status_colorized" |
 fzf \
   --cycle \
   --ansi \
+  --query "$query" \
   --preview "$preview" \
   --preview-window '70%' \
   --header '^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
