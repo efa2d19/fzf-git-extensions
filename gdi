@@ -12,5 +12,6 @@ EOF
 )
 
 git diff --name-only | fzf \
+  --cycle \
   --preview-window '70%' \
   --preview "$preview" > /dev/null
