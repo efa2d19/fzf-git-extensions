@@ -14,6 +14,9 @@ bat \
 EOF
 )
 
-fzf --cycle --preview "$preview" | read -r file
+fzf \
+  --cycle \
+  --preview "$preview" |
+read -r file
 
 [[ -z $file ]] || { micro "$file" }

@@ -4,7 +4,8 @@ type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
 type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
 
 local preview=$(cat <<'EOF'
-git diff {} | delta \
+git diff {} |
+delta \
   --width=$(( $(tput cols) / 10 * 7 ))
 EOF
 )

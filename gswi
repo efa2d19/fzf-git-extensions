@@ -4,6 +4,11 @@ type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
 
 local branch
 
-git branch --all | awk '{print $NF}' | fzf --cycle --preview 'git logs {}' | read -r branch
+git branch --all |
+awk '{print $NF}' |
+fzf \
+  --cycle \
+  --preview 'git logs {}' |
+read -r branch
 
 [[ -z $branch ]] || { [[ $branch == origin/* || $branch == remotes/* ]] && git switch --detach "$branch" || git switch "$branch" }
