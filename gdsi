@@ -9,7 +9,11 @@ git diff --staged {} | delta \
 EOF
 )
 
-git diff --staged --name-only | fzf \
+git diff \
+  --relative \
+  --staged \
+  --name-only |
+fzf \
   --cycle \
   --preview-window '70%' \
   --preview "$preview" > /dev/null
