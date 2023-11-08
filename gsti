@@ -25,8 +25,6 @@ elif [[ -n "$staged_output" ]]; then
 else
   git diff --no-index /dev/null $file;
 fi | delta \
-  --file-style=omit \
-  --hunk-header-style=omit \
   --width=$(( $(tput cols) / 10 * 7 ))
 EOF
 )

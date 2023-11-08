@@ -5,8 +5,6 @@ type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
 
 local preview=$(cat <<'EOF'
 git diff --staged {} | delta \
-  --file-style=omit \
-  --hunk-header-style=omit \
   --width=$(( $(tput cols) / 10 * 7 ))
 EOF
 )
