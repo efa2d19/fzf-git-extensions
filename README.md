@@ -21,7 +21,7 @@ Super simple. Just two steps:
 1. **Tap into our formula repository:**
 
     ```bash
-    brew tap Drugsosos/tap
+    brew tap efa2d19/tap
     ```
 
 2. **Install away:**
