@@ -45,7 +45,7 @@ function teardown() {
 
 trap 'teardown' EXIT
 
-local reload_command="reload(${acquire_lock} && { git status -u --short | awk '$fzf_git_status_colorized' || true } && ${release_lock})"
+local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$fzf_git_status_colorized' || true } && ${release_lock})"
 local execute_silent='execute-silent'
 local execute='execute'
 
@@ -53,10 +53,10 @@ local bind_add="${execute_silent}(${acquire_lock} && { git add {} || true } && $
 local bind_patch="${execute}(${acquire_lock} && { git add --patch {} 2>/dev/null || true } && ${release_lock})+${reload_command}"
 local bind_restore="${execute_silent}(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
 local bind_delete="${execute_silent}(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
-local bind_intent="${execute_silent}(${acquire_lock} && { git add -N {} || true } && ${release_lock})+${reload_command}"
+local bind_intent="${execute_silent}(${acquire_lock} && { git add -N . || true } && ${release_lock})+${reload_command}"
 
 git status \
-  -u \
+  -uno \
   --short |
 awk "$fzf_git_status_colorized" |
 fzf \
