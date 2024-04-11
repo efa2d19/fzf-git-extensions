@@ -9,10 +9,11 @@ local query=''
 
 local fzf_git_status_colorized=$(cat <<'EOF'
 {
-  line = $0;
-  first_char = substr(line, 1, 1);
-  color = (first_char == " " || first_char == "?") ? 31 : 32;
-  printf "\033[%sm%s\033[0m\n", color, $2;
+	line = $0;
+	first_char = substr(line, 1, 1);
+	color = (first_char == " " || first_char == "?") ? 31 : (first_char == "R") ? 34 : 32;
+	file_name = (first_char == "R") ? $4 : $2;
+	printf "\033[%sm%s\033[0m\n", color, file_name;
 }
 EOF
 )
@@ -23,14 +24,14 @@ diff_output=$(git diff $file) || true;
 staged_output=$(git diff --staged $file) || true;
 
 if [[ -n "$diff_output" ]]; then
-  echo "$diff_output";
+	echo "$diff_output";
 elif [[ -n "$staged_output" ]]; then
-  echo "$staged_output";
+	echo "$staged_output";
 else
-  git diff --no-index /dev/null $file;
+	git diff --no-index /dev/null $file;
 fi |
 delta \
-  --width=$(( $(tput cols) / 10 * 7 ))
+	--width=$(( $(tput cols) / 10 * 7 ))
 EOF
 )
 
@@ -56,18 +57,18 @@ local bind_delete="${execute_silent}(${acquire_lock} && { git restore {} || true
 local bind_intent="${execute_silent}(${acquire_lock} && { git add -N . || true } && ${release_lock})+${reload_command}"
 
 git status \
-  -uno \
-  --short |
+	-uno \
+	--short |
 awk "$fzf_git_status_colorized" |
 fzf \
-  --cycle \
-  --ansi \
-  --query "$query" \
-  --preview "$preview" \
-  --preview-window '70%' \
-  --header '^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
-  --bind "ctrl-a:${bind_add}" \
-  --bind "ctrl-p:${bind_patch}" \
-  --bind "ctrl-r:${bind_restore}" \
-  --bind "ctrl-d:${bind_delete}" \
-  --bind "ctrl-n:${bind_intent}"
+	--cycle \
+	--ansi \
+	--query "$query" \
+	--preview "$preview" \
+	--preview-window '70%' \
+	--header '^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
+	--bind "ctrl-a:${bind_add}" \
+	--bind "ctrl-p:${bind_patch}" \
+	--bind "ctrl-r:${bind_restore}" \
+	--bind "ctrl-d:${bind_delete}" \
+	--bind "ctrl-n:${bind_intent}"
