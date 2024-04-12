@@ -11,7 +11,19 @@ local fzf_git_status_colorized=$(cat <<'EOF'
 {
 	line = $0;
 	first_char = substr(line, 1, 1);
-	color = (first_char == " " || first_char == "?") ? 31 : (first_char == "R") ? 34 : 32;
+	second_char = substr(line, 2, 1);
+	
+	color="0";
+	if (second_char == "M") color="1;31";
+	else if (first_char == "?") color="31";
+	else if (first_char == " ") color="31";
+	else if (first_char == "C") color="1;32";
+	else if (first_char == "A") color="1;32";
+	else if (first_char == "M") color="32";
+	else if (first_char == "R") color="34";
+	else if (first_char == "D") color="30";
+	else if (first_char == "U") color="1;30";
+	
 	file_name = (first_char == "R") ? $4 : $2;
 	printf "\033[%sm%s\033[0m\n", color, file_name;
 }
