@@ -32,16 +32,16 @@ EOF
 
 local preview=$(cat <<'EOF'
 file=$(echo {} | awk '{ print $NF }');
-diff_output=$(git diff $file) || true;
-staged_output=$(git diff --staged $file) || true;
+has_diff=$(git diff "$file" | wc -l | awk '{ print $1 }');
+has_staged=$(git diff --staged "$file" | wc -l | awk '{ print $1 }');
 
-if [[ -n "$diff_output" ]]; then
-	echo "$diff_output";
-elif [[ -n "$staged_output" ]]; then
-	echo "$staged_output";
-else
-	git diff --no-index /dev/null $file;
-fi |
+argsArr=()
+
+if [[ $has_diff == 0 ]]; then
+	[[ $has_staged != 0 ]] && { argsArr+=('--staged') } || { argsArr+=('--no-index') }
+fi
+
+git diff "${argsArr[@]}" "$file" |
 delta \
 	--width=$(( $(tput cols) / 10 * 7 ))
 EOF
