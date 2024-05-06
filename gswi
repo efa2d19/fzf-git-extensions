@@ -12,6 +12,7 @@ local preview_width="$(( $width / 4 * 3 ))"
 local preview_width_folded="$(( $width / 5 ))"
 
 local preview_window="right:${preview_width}:border-vertical"
+local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
 git branch --all |
 awk '{print $NF}' |
@@ -19,7 +20,8 @@ fzf \
 	--cycle \
 	--query="$query" \
 	--preview='git logs {}' \
-	--preview-window="$preview_window" |
+	--preview-window="$preview_window" \
+	--bind="ctrl-\\:${bind_fold}" |
 read -r branch
 
 [[ -z $branch ]] || { [[ $branch == origin/* || $branch == remotes/* ]] && git switch --detach "$branch" || git switch "$branch" }
