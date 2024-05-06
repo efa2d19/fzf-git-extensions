@@ -29,7 +29,7 @@ fzf \
 	--query="$query" \
 	--preview="$preview" \
 	--preview-window="$preview_window" \
-	--bind="ctrl-\\\:${bind_fold}" |
+	--bind="ctrl-\\:${bind_fold}" |
 read -r file
 
 [[ -z $file ]] || { micro "$file" }
