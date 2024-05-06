@@ -10,15 +10,21 @@ local query=''
 local preview=$(cat <<'EOF'
 git diff {} |
 delta \
-  --width=$(( $(tput cols) / 10 * 7 ))
+	--width="$(( $(tput cols) / 4 * 3 ))"
 EOF
 )
 
+local width="$(tput cols)"
+local preview_width="$(( $width / 4 * 3 ))"
+local preview_width_folded="$(( $width / 5 ))"
+
+local preview_window="right:${preview_width}:border-vertical"
+
 git diff \
-  --relative \
-  --name-only |
+	--relative \
+	--name-only |
 fzf \
-  --cycle \
-  --query "$query"  \
-  --preview-window '70%' \
-  --preview "$preview" > /dev/null
+	--cycle \
+	--query="$query"  \
+	--preview="$preview" \
+	--preview-window="$preview_window" > /dev/null
