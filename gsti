@@ -56,7 +56,7 @@ function teardown() {
 	rm -f '.git/index.lock' 2>/dev/null
 }
 
-trap 'teardown' EXIT
+trap 'teardown' EXIT SIGINT
 
 local width="$(tput cols)"
 local preview_width="$(( $width / 4 * 3 ))"
