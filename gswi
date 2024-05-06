@@ -7,12 +7,19 @@ local query=''
 
 [[ -z $@ ]] || { query="$@" }
 
+local width="$(tput cols)"
+local preview_width="$(( $width / 4 * 3 ))"
+local preview_width_folded="$(( $width / 5 ))"
+
+local preview_window="right:${preview_width}:border-vertical"
+
 git branch --all |
 awk '{print $NF}' |
 fzf \
-  --cycle \
-  --query "$query" \
-  --preview 'git logs {}' |
+	--cycle \
+	--query="$query" \
+	--preview='git logs {}' \
+	--preview-window="$preview_window" |
 read -r branch
 
 [[ -z $branch ]] || { [[ $branch == origin/* || $branch == remotes/* ]] && git switch --detach "$branch" || git switch "$branch" }
