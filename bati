@@ -10,17 +10,24 @@ local query=''
 
 local preview=$(cat <<'EOF'
 bat \
-  --style=numbers \
-  --color=always \
-  {}
+	--style=numbers \
+	--color=always \
+	--terminal-width="$(( $(tput cols) / 4 * 3 ))" \
+	{}
 EOF
 )
 
+local width="$(tput cols)"
+local preview_width="$(( $width / 4 * 3 ))"
+local preview_width_folded="$(( $width / 5 ))"
+
+local preview_window="right:${preview_width}:border-vertical"
 
 fzf \
-  --cycle \
-  --query "$query" \
-  --preview "$preview" |
+	--cycle \
+	--query="$query" \
+	--preview="$preview" \
+	--preview-window="$preview_window" |
 read -r file
 
 [[ -z $file ]] || { bat "$file" }
