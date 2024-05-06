@@ -73,6 +73,7 @@ local bind_patch="${execute}(${acquire_lock} && { git add --patch {} 2>/dev/null
 local bind_restore="${execute_silent}(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
 local bind_delete="${execute_silent}(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
 local bind_intent="${execute_silent}(${acquire_lock} && { git add -N . || true } && ${release_lock})+${reload_command}"
+local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
 git status \
 	-uno \
@@ -89,4 +90,5 @@ fzf \
 	--bind="ctrl-p:${bind_patch}" \
 	--bind="ctrl-r:${bind_restore}" \
 	--bind="ctrl-d:${bind_delete}" \
-	--bind="ctrl-n:${bind_intent}"
+	--bind="ctrl-n:${bind_intent}" \
+	--bind="ctrl-\\:${bind_fold}"
