@@ -43,7 +43,7 @@ fi
 
 git diff "${argsArr[@]}" "$file" |
 delta \
-	--width=$(( $(tput cols) / 10 * 7 ))
+	--width=$(( $(tput cols) / 4 * 3 ))
 EOF
 )
 
@@ -57,6 +57,12 @@ function teardown() {
 }
 
 trap 'teardown' EXIT
+
+local width="$(tput cols)"
+local preview_width="$(( $width / 4 * 3 ))"
+local preview_width_folded="$(( $width / 5 ))"
+
+local preview_window="right:${preview_width}:border-vertical"
 
 local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$fzf_git_status_colorized' || true } && ${release_lock})"
 local execute_silent='execute-silent'
@@ -75,12 +81,12 @@ awk "$fzf_git_status_colorized" |
 fzf \
 	--cycle \
 	--ansi \
-	--query "$query" \
-	--preview "$preview" \
-	--preview-window '70%' \
-	--header '^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
-	--bind "ctrl-a:${bind_add}" \
-	--bind "ctrl-p:${bind_patch}" \
-	--bind "ctrl-r:${bind_restore}" \
-	--bind "ctrl-d:${bind_delete}" \
-	--bind "ctrl-n:${bind_intent}"
+	--query="$query" \
+	--preview="$preview" \
+	--preview-window="$preview_window" \
+	--header='^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
+	--bind="ctrl-a:${bind_add}" \
+	--bind="ctrl-p:${bind_patch}" \
+	--bind="ctrl-r:${bind_restore}" \
+	--bind="ctrl-d:${bind_delete}" \
+	--bind="ctrl-n:${bind_intent}"
