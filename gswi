@@ -14,7 +14,9 @@ local preview_width_folded="$(( $width / 5 ))"
 local preview_window="right:${preview_width}:border-vertical"
 local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
-git branch --all |
+git branch -a |
+sed -E 's/^(\*| ) //' |
+sed -E 's/^\(HEAD detached at (.+)\)$/\1/' |
 awk '{print $NF}' |
 fzf \
 	--cycle \
@@ -22,6 +24,5 @@ fzf \
 	--preview='git logs {}' \
 	--preview-window="$preview_window" \
 	--bind="ctrl-\\:${bind_fold}" |
-read -r branch
-
-[[ -z $branch ]] || { [[ $branch == origin/* || $branch == remotes/* ]] && git switch --detach "$branch" || git switch "$branch" }
+sed -E 's/^(remotes\/)?(origin\/)?//' |
+xargs git switch
