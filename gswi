@@ -16,7 +16,7 @@ local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})
 
 git branch -a |
 sed -E 's/^(\*| ) //' |
-sed -E 's/^\(HEAD detached at (.+)\)$/\1/' |
+sed -E 's/^\(HEAD detached [a-zA-Z]+ (.+)\)$/\1/' |
 awk '{print $NF}' |
 fzf \
 	--cycle \
