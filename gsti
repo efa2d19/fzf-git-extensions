@@ -1,23 +1,57 @@
 #!/usr/bin/env zsh
 
-type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
-type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
+local help
+
+local deps=(
+    'git'
+    'fzf'
+    'delta'
+)
+
+local name="${0:t}"
+local usage=(
+    'Usage:'
+    '\t$name [-h|--help]'
+)
+
+zparseopts -D -F -- \
+    {h,-help}=help ||
+    { print -l "\n${(@)usage}" && exit 1 }
+
+[[ -z $help ]] || { print -l "${(@)usage}" && exit 0}
 
 local query=''
-
 [[ -z $@ ]] || { query="$@" }
 
-local fzf_git_status_colorized=$(cat <<'EOF'
+function check_deps() {
+    [[ -n $deps ]] || { echo '[!] Incorrect env - check_deps' && exit 2 }
+
+    local failed
+    for dep in "${(@)deps}"; do
+        type "$dep" &>/dev/null || { echo '[!] Missing -' "$dep" && failed=1 }
+    done
+
+    [[ -z $failed ]] || { exit 1 }
+}
+
+local lock_file='/tmp/gsti_lock'
+trap "unlink $lock_file 2>/dev/null" EXIT INT
+
+function main() {
+    check_deps
+
+    local gst_colorize=$(cat <<'EOF'
 {
 	line = $0;
 	first_char = substr(line, 1, 1);
 	second_char = substr(line, 2, 1);
 	
 	color="5";
-	if (second_char == "M") color="22";
+	if (second_char == "M" && first_char != " ") color="10";
+    else if (second_char == "M") color="22";
 	else if (first_char == "?") color="1";
 	else if (first_char == " ") color="1";
-	else if (first_char == "C") color="10";
+	else if (first_char == "C") color="7";
 	else if (first_char == "A") color="34";
 	else if (first_char == "M") color="2";
 	else if (first_char == "R") color="75";
@@ -30,65 +64,53 @@ local fzf_git_status_colorized=$(cat <<'EOF'
 EOF
 )
 
-local preview=$(cat <<'EOF'
-file=$(echo {} | awk '{ print $NF }');
-has_diff=$(git diff "$file" | wc -l | awk '{ print $1 }');
-has_staged=$(git diff --staged "$file" | wc -l | awk '{ print $1 }');
+    local preview=$(cat <<'EOF'
+{
+    local file="$(echo {} | awk '{ print $NF }')"
 
-argsArr=()
+    local args=()
+    git diff --quiet "$file" && { git diff --staged --quiet "$file" && args+=('--no-index') || args+=('--staged'); }
 
-if [[ $has_diff == 0 ]]; then
-	[[ $has_staged != 0 ]] && { argsArr+=('--staged') } || { argsArr+=('--no-index') }
-fi
-
-git diff "${argsArr[@]}" "$file" |
-delta \
-	--width=$(( $(tput cols) / 4 * 3 ))
+    git diff "${args[@]}" "$file" |
+    delta \
+      --width="$(( $(tput cols) / 4 * 3 ))"
+}
 EOF
 )
 
-local lock_file='/tmp/gsti_lock'
-local acquire_lock="until nice -n 10 mkdir $lock_file 2>/dev/null; do sleep 0.2; done"
-local release_lock="rmdir $lock_file 2>/dev/null"
+    local acquire_lock="exec 8>$lock_file; lockf -s 8"
+    local release_lock="exec 8>&-"
 
-function teardown() {
-	rmdir "$lock_file" 2>/dev/null
-	rm -f '.git/index.lock' 2>/dev/null
+    local width="$(tput cols)"
+    local preview_width="$(( $width / 4 * 3 ))"
+    local preview_width_folded="$(( $width / 5 ))"
+    local preview_window="right:${preview_width}:border-vertical"
+
+    local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$gst_colorize' || true } && ${release_lock})"
+    local bind_add="execute-silent(${acquire_lock} && { git add {} || true } && ${release_lock})+${reload_command}"
+    local bind_patch="execute(${acquire_lock} && { git add --patch {} 2>/dev/null || true } && ${release_lock})+${reload_command}"
+    local bind_restore="execute-silent(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
+    local bind_delete="execute-silent(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
+    local bind_intent="execute-silent(${acquire_lock} && { git add -N . || true } && ${release_lock})+${reload_command}"
+    local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
+
+    git status \
+        -uno \
+        --short |
+    awk "$gst_colorize" |
+    fzf \
+    	--cycle \
+    	--ansi \
+    	--query="$query" \
+    	--preview="$preview" \
+	    --preview-window="$preview_window" \
+    	--header='^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
+    	--bind="ctrl-a:${bind_add}" \
+    	--bind="ctrl-p:${bind_patch}" \
+    	--bind="ctrl-r:${bind_restore}" \
+    	--bind="ctrl-d:${bind_delete}" \
+    	--bind="ctrl-n:${bind_intent}" \
+	    --bind="ctrl-\\:${bind_fold}"
 }
 
-trap 'teardown' EXIT SIGINT
-
-local width="$(tput cols)"
-local preview_width="$(( $width / 4 * 3 ))"
-local preview_width_folded="$(( $width / 5 ))"
-
-local preview_window="right:${preview_width}:border-vertical"
-
-local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$fzf_git_status_colorized' || true } && ${release_lock})"
-local execute_silent='execute-silent'
-local execute='execute'
-
-local bind_add="${execute_silent}(${acquire_lock} && { git add {} || true } && ${release_lock})+${reload_command}"
-local bind_patch="${execute}(${acquire_lock} && { git add --patch {} 2>/dev/null || true } && ${release_lock})+${reload_command}"
-local bind_restore="${execute_silent}(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
-local bind_delete="${execute_silent}(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
-local bind_intent="${execute_silent}(${acquire_lock} && { git add -N . || true } && ${release_lock})+${reload_command}"
-local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
-
-git status \
-	-uno \
-	--short |
-awk "$fzf_git_status_colorized" |
-fzf \
-	--cycle \
-	--ansi \
-	--query="$query" \
-	--preview="$preview" \
-	--preview-window="$preview_window" \
-	--header='^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
-	--bind="ctrl-a:${bind_add}" \
-	--bind="ctrl-p:${bind_patch}" \
-	--bind="ctrl-r:${bind_restore}" \
-	--bind="ctrl-d:${bind_delete}" \
-	--bind="ctrl-n:${bind_intent}" \
-	--bind="ctrl-\\:${bind_fold}"
+main

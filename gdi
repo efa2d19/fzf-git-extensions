@@ -1,32 +1,67 @@
 #!/usr/bin/env zsh
 
-type 'fzf' &>/dev/null || { echo 'fzf is not installed' && exit 1 }
-type 'delta' &>/dev/null || { echo 'delta is not installed' && exit 1 }
+local help
+
+local deps=(
+    'git'
+    'fzf'
+    'delta'
+)
+
+local name="${0:t}"
+local usage=(
+    'Usage:'
+    '\t$name [-h|--help]'
+)
+
+zparseopts -D -F -- \
+    {h,-help}=help ||
+    { print -l "\n${(@)usage}" && exit 1 }
+
+[[ -z $help ]] || { print -l "${(@)usage}" && exit 0}
 
 local query=''
-
 [[ -z $@ ]] || { query="$@" }
 
-local preview=$(cat <<'EOF'
-git diff {} |
-delta \
-	--width="$(( $(tput cols) / 4 * 3 ))"
+function check_deps() {
+    [[ -n $deps ]] || { echo '[!] Incorrect env - check_deps' && exit 2 }
+
+    local failed
+    for dep in "${(@)deps}"; do
+        type "$dep" &>/dev/null || { echo '[!] Missing -' "$dep" && failed=1 }
+    done
+
+    [[ -z $failed ]] || { exit 1 }
+}
+
+function main() {
+    check_deps
+
+    local preview=$(cat <<'EOF'
+{
+    git diff {} |
+    delta \
+    	--width="$(( $(tput cols) / 4 * 3 ))"
+}
 EOF
 )
 
-local width="$(tput cols)"
-local preview_width="$(( $width / 4 * 3 ))"
-local preview_width_folded="$(( $width / 5 ))"
+    local width="$(tput cols)"
+    local preview_width="$(( $width / 4 * 3 ))"
+    local preview_width_folded="$(( $width / 5 ))"
+    local preview_window="right:${preview_width}:border-vertical"
 
-local preview_window="right:${preview_width}:border-vertical"
-local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
+    local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
-git diff \
-	--relative \
-	--name-only |
-fzf \
-	--cycle \
-	--query="$query"  \
-	--preview="$preview" \
-	--preview-window="$preview_window" \
-	--bind="ctrl-\\:${bind_fold}" > /dev/null
+    git diff \
+    	--relative \
+    	--name-only |
+    fzf \
+    	--cycle \
+    	--query="$query"  \
+    	--preview="$preview" \
+    	--preview-window="$preview_window" \
+    	--bind="ctrl-\\:$bind_fold" > /dev/null
+}
+
+main
