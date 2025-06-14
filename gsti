@@ -12,6 +12,7 @@ local name="${0:t}"
 local usage=(
     'Usage:'
     "\t$name [-h|--help]"
+    "\t$name <optional_query>"
 )
 
 zparseopts -D -F -- \
