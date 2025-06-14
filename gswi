@@ -10,7 +10,7 @@ local deps=(
 local name="${0:t}"
 local usage=(
     'Usage:'
-    '\t$name [-h|--help]'
+    "\t$name [-h|--help]"
 )
 
 zparseopts -D -F -- \
