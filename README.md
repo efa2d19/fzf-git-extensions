@@ -34,8 +34,6 @@ Super simple. Just two steps:
 
 Wondering what you can do? Here's the lowdown:
 
-- 📂 `bati`: Browse files and view them with `bat`, all in a nifty preview window.
-- 📝 `microi`: Open files in the `micro` editor, again with previews!
 - 🔍 `gdi`: View `git diff` outputs through `delta`, in real-time previews.
 - 📦 `gdsi`: Check out `git diff --staged`, but make it better with `delta` previews.
 - ✅ `gsti`: Stage or unstage files while keeping an eye on the diffs.
