@@ -51,7 +51,7 @@ function main() {
     fzf \
     	--cycle \
     	--query="$query" \
-    	--preview='git logs {}' \
+    	--preview='git log --decorate --graph {}' \
     	--preview-window="$preview_window" \
     	--bind="ctrl-\\:$bind_fold" |
     sed -E 's/^(remotes\/)?(origin\/)?//' |
