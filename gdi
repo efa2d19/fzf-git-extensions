@@ -55,14 +55,14 @@ EOF
     local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
     git diff \
-    	--relative \
-    	--name-only |
+        --relative \
+        --name-only |
     fzf \
-    	--cycle \
-    	--query="$query"  \
-    	--preview="$preview" \
-    	--preview-window="$preview_window" \
-    	--bind="ctrl-\\:$bind_fold"
+        --cycle \
+        --query="$query"  \
+        --preview="$preview" \
+        --preview-window="$preview_window" \
+        --bind="ctrl-\\:$bind_fold"
 }
 
 main

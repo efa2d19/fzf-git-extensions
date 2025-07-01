@@ -43,24 +43,24 @@ function main() {
 
     local gst_colorize=$(cat <<'EOF'
 {
-	line = $0;
-	first_char = substr(line, 1, 1);
-	second_char = substr(line, 2, 1);
+    line = $0;
+    first_char = substr(line, 1, 1);
+    second_char = substr(line, 2, 1);
 	
-	color="5";
-	if (second_char == "M" && first_char != " ") color="10";
+    color="5";
+    if (second_char == "M" && first_char != " ") color="10";
     else if (second_char == "M") color="22";
-	else if (first_char == "?") color="1";
-	else if (first_char == " ") color="1";
-	else if (first_char == "C") color="7";
-	else if (first_char == "A") color="34";
-	else if (first_char == "M") color="2";
-	else if (first_char == "R") color="75";
-	else if (first_char == "D") color="240";
-	else if (first_char == "U") color="220";
+    else if (first_char == "?") color="1";
+    else if (first_char == " ") color="1";
+    else if (first_char == "C") color="7";
+    else if (first_char == "A") color="34";
+    else if (first_char == "M") color="2";
+    else if (first_char == "R") color="75";
+    else if (first_char == "D") color="240";
+    else if (first_char == "U") color="220";
 	
-	file_name = (first_char == "R") ? $4 : $2;
-	printf "\033[38;5;%sm%s\033[0m\n", color, file_name;
+    file_name = (first_char == "R") ? $4 : $2;
+    printf "\033[38;5;%sm%s\033[0m\n", color, file_name;
 }
 EOF
 )
@@ -100,18 +100,18 @@ EOF
         --short |
     awk "$gst_colorize" |
     fzf \
-    	--cycle \
-    	--ansi \
-    	--query="$query" \
-    	--preview="$preview" \
-	    --preview-window="$preview_window" \
-    	--header='^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
-    	--bind="ctrl-a:${bind_add}" \
-    	--bind="ctrl-p:${bind_patch}" \
-    	--bind="ctrl-r:${bind_restore}" \
-    	--bind="ctrl-d:${bind_delete}" \
-    	--bind="ctrl-n:${bind_intent}" \
-	    --bind="ctrl-\\:${bind_fold}"
+        --cycle \
+        --ansi \
+        --query="$query" \
+        --preview="$preview" \
+        --preview-window="$preview_window" \
+        --header='^A: Add | ^P: Patch | ^R: Unstage | ^D: Delete | ^N: Intent' \
+        --bind="ctrl-a:${bind_add}" \
+        --bind="ctrl-p:${bind_patch}" \
+        --bind="ctrl-r:${bind_restore}" \
+        --bind="ctrl-d:${bind_delete}" \
+        --bind="ctrl-n:${bind_intent}" \
+        --bind="ctrl-\\:${bind_fold}"
 }
 
 main

@@ -49,11 +49,11 @@ function main() {
     sed -E 's/^\(HEAD detached [a-zA-Z]+ (.+)\)$/\1/' |
     awk '{print $NF}' |
     fzf \
-    	--cycle \
-    	--query="$query" \
-    	--preview='git log --decorate --graph {}' \
-    	--preview-window="$preview_window" \
-    	--bind="ctrl-\\:$bind_fold" |
+        --cycle \
+        --query="$query" \
+        --preview='git log --decorate --graph {}' \
+        --preview-window="$preview_window" \
+        --bind="ctrl-\\:$bind_fold" |
     sed -E 's/^(remotes\/)?(origin\/)?//' |
     xargs git switch
 }
