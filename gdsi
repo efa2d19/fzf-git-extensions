@@ -63,7 +63,7 @@ EOF
     	--query="$query" \
     	--preview="$preview" \
     	--preview-window="$preview_window" \
-    	--bind="ctrl-\\:$bind_fold" > /dev/null
+    	--bind="ctrl-\\:$bind_fold"
 }
 
 main
