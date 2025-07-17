@@ -43,36 +43,37 @@ function main() {
 
     local gst_colorize=$(cat <<'EOF'
 {
-    line = $0;
-    first_char = substr(line, 1, 1);
-    second_char = substr(line, 2, 1);
+    staged_status = substr($0, 1, 1);
+    unstaged_status = substr($0, 2, 1);
+    filename = substr($0, 4)
 	
     color="5";
-    if (second_char == "M" && first_char != " ") color="10";
-    else if (second_char == "M") color="22";
-    else if (first_char == "?") color="1";
-    else if (first_char == " ") color="1";
-    else if (first_char == "C") color="7";
-    else if (first_char == "A") color="34";
-    else if (first_char == "M") color="2";
-    else if (first_char == "R") color="75";
-    else if (first_char == "D") color="240";
-    else if (first_char == "U") color="220";
+    if (unstaged_status == "M" && staged_status != " ") color="10";
+    else if (unstaged_status == "M") color="22";
+    else if (staged_status == "?") color="1";
+    else if (staged_status == " ") color="1";
+    else if (staged_status == "C") color="7";
+    else if (staged_status == "A") color="34";
+    else if (staged_status == "M") color="2";
+    else if (staged_status == "R") color="75";
+    else if (staged_status == "D") color="240";
+    else if (staged_status == "U") color="220";
 	
-    file_name = (first_char == "R") ? $4 : $2;
-    printf "\033[38;5;%sm%s\033[0m\n", color, file_name;
+    if (staged_status == "R") {
+        last_idx = split(filename, split_filename, " -> ");
+        filename = split_filename[last_idx];
+    }
+    printf "\033[38;5;%sm%s\033[0m\n", color, filename;
 }
 EOF
 )
 
     local preview=$(cat <<'EOF'
 {
-    local file="$(echo {} | awk '{ print $NF }')"
-
     local args=()
-    git diff --quiet "$file" && { git diff --staged --quiet "$file" && args+=('--no-index') || args+=('--staged'); }
+    git diff --quiet {} && { git diff --staged --quiet {} && args+=('--no-index') || args+=('--staged'); }
 
-    git diff "${args[@]}" "$file" |
+    git diff "${args[@]}" {} |
     delta \
       --width="$(( $(tput cols) / 4 * 3 ))"
 }
@@ -87,7 +88,7 @@ EOF
     local preview_width_folded="$(( $width / 5 ))"
     local preview_window="right:${preview_width}:border-vertical"
 
-    local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$gst_colorize' || true } && ${release_lock})"
+    local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$gst_colorize' | tr -d \\\"\' || true } && ${release_lock})"
     local bind_add="execute-silent(${acquire_lock} && { git add {} || true } && ${release_lock})+${reload_command}"
     local bind_patch="execute(${acquire_lock} && { git add --patch {} 2>/dev/null || true } && ${release_lock})+${reload_command}"
     local bind_restore="execute-silent(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
@@ -99,6 +100,7 @@ EOF
         -uno \
         --short |
     awk "$gst_colorize" |
+    tr -d \"\' |
     fzf \
         --cycle \
         --ansi \
