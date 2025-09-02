@@ -58,8 +58,9 @@ EOF
         --relative \
         --name-only |
     fzf \
+        --multi \
         --cycle \
-        --query="$query"  \
+        --query="$query" \
         --preview="$preview" \
         --preview-window="$preview_window" \
         --bind="ctrl-\\:$bind_fold"

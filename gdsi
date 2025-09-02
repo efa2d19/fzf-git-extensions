@@ -59,6 +59,7 @@ EOF
         --staged \
         --name-only |
     fzf \
+        --multi \
         --cycle \
         --query="$query" \
         --preview="$preview" \

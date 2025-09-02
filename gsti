@@ -89,10 +89,10 @@ EOF
     local preview_window="right:${preview_width}:border-vertical"
 
     local reload_command="reload(${acquire_lock} && { git status -uno --short | awk '$gst_colorize' | tr -d \\\"\' || true } && ${release_lock})"
-    local bind_add="execute-silent(${acquire_lock} && { git add {} || true } && ${release_lock})+${reload_command}"
-    local bind_patch="execute(${acquire_lock} && { git add --patch {} 2>/dev/null || true } && ${release_lock})+${reload_command}"
-    local bind_restore="execute-silent(${acquire_lock} && { git restore --staged {} || true } && ${release_lock})+${reload_command}"
-    local bind_delete="execute-silent(${acquire_lock} && { git restore {} || true } && ${release_lock})+${reload_command}"
+    local bind_add="execute-silent(${acquire_lock} && { git add -- {+} || true } && ${release_lock})+${reload_command}"
+    local bind_patch="execute(${acquire_lock} && { git add --patch -- {+} 2>/dev/null || true } && ${release_lock})+${reload_command}"
+    local bind_restore="execute-silent(${acquire_lock} && { git restore --staged -- {+} || true } && ${release_lock})+${reload_command}"
+    local bind_delete="execute-silent(${acquire_lock} && { git restore -- {+} || true } && ${release_lock})+${reload_command}"
     local bind_intent="execute-silent(${acquire_lock} && { git add -N . || true } && ${release_lock})+${reload_command}"
     local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
@@ -102,6 +102,7 @@ EOF
     awk "$gst_colorize" |
     tr -d \"\' |
     fzf \
+        --multi \
         --cycle \
         --ansi \
         --query="$query" \
