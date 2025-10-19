@@ -59,7 +59,7 @@ function main() {
     else if (staged_status == "D") color="240";
     else if (staged_status == "U") color="220";
 	
-    if (staged_status == "R") {
+    if (staged_status == "R" || unstaged_status == "R") {
         last_idx = split(filename, split_filename, " -> ");
         filename = split_filename[last_idx];
     }
