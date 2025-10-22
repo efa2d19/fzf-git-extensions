@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-local help
+local help local_branches
 
 local deps=(
     'git'
@@ -11,11 +11,12 @@ local name="${0:t}"
 local usage=(
     'Usage:'
     "\t$name [-h|--help]"
-    "\t$name <optional_query>"
+    "\t$name [-l|--local] <optional_query>"
 )
 
 zparseopts -D -F -- \
-    {h,-help}=help ||
+    {h,-help}=help \
+    {l,-local}=local_branches ||
     { print -l "\n${(@)usage}" && exit 1 }
 
 [[ -z $help ]] || { print -l "${(@)usage}" && exit 0 }
@@ -44,7 +45,10 @@ function main() {
 
     local bind_fold="change-preview-window(${preview_width_folded}|${preview_width})"
 
-    git branch -a |
+    local git_argv=()
+    [[ -n $local_branches ]] || git_argv+=('-a')
+
+    git branch "${(@)git_argv}" |
     sed -E 's/^(\*| ) //' |
     sed -E 's/^\(HEAD detached [a-zA-Z]+ (.+)\)$/\1/' |
     awk '{print $NF}' |
